@@ -1,0 +1,85 @@
+import numpy as np
+import pandas as pd
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# Generate synthetic data
+n_samples = 1000
+age = np.random.randint(18, 65, n_samples)
+weight = np.random.randint(50, 100, n_samples)
+steps = np.random.randint(1000, 15000, n_samples)
+heart_rate = np.random.randint(60, 100, n_samples)
+sleep_duration = np.random.uniform(4, 10, n_samples)
+fitness_goal = np.random.choice(['weight_loss', 'muscle_gain', 'maintenance'], n_samples)
+
+# Generate health score based on some rules
+health_score = (steps / 1000) + (heart_rate / 100) + sleep_duration
+health_score = health_score + np.where(fitness_goal == 'weight_loss', 2, 0)
+health_score = health_score + np.where(fitness_goal == 'muscle_gain', 3, 0)
+health_score = health_score + np.where(fitness_goal == 'maintenance', 1, 0)
+
+# Create DataFrame
+data = pd.DataFrame({
+    'Age': age,
+    'Weight': weight,
+    'Steps': steps,
+    'HeartRate': heart_rate,
+    'SleepDuration': sleep_duration,
+    'FitnessGoal': fitness_goal,
+    'HealthScore': health_score
+})
+
+# Display first few rows of the dataset
+data.head()
+
+#%%
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+# Encode the categorical 'FitnessGoal' column
+label_encoder = LabelEncoder()
+data['FitnessGoal'] = label_encoder.fit_transform(data['FitnessGoal'])
+
+# Split the data into features and target
+X = data.drop('HealthScore', axis=1)
+y = data['HealthScore']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+#%%
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Initialize the model
+model = LinearRegression()
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"Mean Squared Error: {mse}")
+print(f"R^2 Score: {r2}")
+
+#%%
+import matplotlib.pyplot as plt
+
+# Scatter plot of true vs predicted values
+plt.scatter(y_test, y_pred)
+plt.xlabel('True Values')
+plt.ylabel('Predictions')
+plt.title('True vs Predicted Health Scores')
+plt.show()
+
+#%%
+
+#%%
